@@ -718,6 +718,10 @@ defmodule NetRunner.Process do
       |> Map.put(:stats, stats)
       |> retry_reads_for({:read, :stdout})
       |> retry_reads_for({:read, :stderr})
+      # The :consume drain is select-driven too, so drain it here as well:
+      # otherwise stderr_tail/1 right after await_exit/1 can miss the child's
+      # last writes when the exit status beats the stderr readiness event.
+      |> maybe_consume_stderr()
 
     # Reply to all awaiting callers
     Enum.each(state.awaiting_exit, fn from ->
