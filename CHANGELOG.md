@@ -34,6 +34,11 @@ remaining findings across shepherd/NIF, lib, tests, docs, and CI).
 
 ### Fixed
 
+- **The stderr tail is complete when the child exits.** In `:consume`
+  mode the drain was select-driven only, so when the exit status arrived
+  before the stderr readiness event, `stderr_tail/1` right after
+  `await_exit/1` (and `run/2` with `stderr: :capture`) could miss the
+  child's last writes. `finish_exit/2` now drains stderr too.
 - **EINTR is retried** in the NIF `read(2)`/`write(2)` loops and shepherd
   I/O; a transient signal can no longer permanently wedge a drain loop.
 - **Shepherd diagnostics surface.** A spawn-stage `MSG_ERROR` (cgroup
